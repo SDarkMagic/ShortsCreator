@@ -1,10 +1,9 @@
 # Class and utils for handling video data
 import config
-import numpy as np
 import pathlib
 import cv2
 #import threading
-import time
+import util
 from moviepy.editor import *
 from frame import Frame
 
@@ -21,31 +20,8 @@ class Video:
 
     def _split(self, start: str, duration: float):
         # Perform several transformations and operations on time strings to get accurate start and end timestamps
-        time_format = "%H:%M:%S.%f"
-        if start == None:
-            start = '00:00:00.00'
-        if duration == None:
-            duration = self.raw.duration
-        t_start_list = start.split(':')
-
-        if (len(t_start_list) != 3):
-            i = len(t_start_list)
-            while i <= 3:
-                t_start_list.insert(0, '00')
-                i += 1
-        if ('.' not in t_start_list[-1]):
-            t_start_list[-1] = f'{t_start_list[-1]}.000000'
-
-        start = ':'.join(t_start_list)
-        t_start = time.strptime(start, time_format)
-        #if ('.' not in duration):
-           # duration += '.00'
-        #duration = float(duration)
-        #duration *= 1000
-        t_end = t_start
-        t_end.tm_sec += int(duration)
-        start = time.strftime(time_format, t_start)
-        end = time.strftime(time_format, t_end)
+        start_ms = util.timestring_to_ms(start)
+        end = util.ms_to_timestring(start_ms + (float(duration) * 1000))
         return self.raw.subclip(t_start=start, t_end=end)
 
     def save_sequence(self, output: pathlib.Path or None):
