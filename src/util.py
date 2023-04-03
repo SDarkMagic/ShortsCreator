@@ -23,11 +23,11 @@ def ms_to_timestring(ms: int):
     split_ms[0] = int(ms // 1000)
     split_time[2] = str(split_ms[0])
     if int(split_time[2]) > 60:
-        split_time[1] = split_time[2] // 60
-        split_time[2] = str(split_time[2] % 60)
+        split_time[1] = str(int(split_time[2]) // 60)
+        split_time[2] = str(int(split_time[2]) % 60)
     if int(split_time[1]) > 60:
-        split_time[0] = str(split_time[1] // 60)
-        split_time[1] = str(split_time[1] % 60)
+        split_time[0] = str(int(split_time[1]) // 60)
+        split_time[1] = str(int(split_time[1]) % 60)
     for i in split_time:
         if len(i) < 2:
             split_time[split_time.index(i)] = f'0{split_time[split_time.index(i)]}'

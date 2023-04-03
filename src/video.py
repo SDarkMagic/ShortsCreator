@@ -20,8 +20,12 @@ class Video:
 
     def _split(self, start: str, duration: float):
         # Perform several transformations and operations on time strings to get accurate start and end timestamps
+
         start_ms = util.timestring_to_ms(start)
-        end = util.ms_to_timestring(start_ms + (float(duration) * 1000))
+        if duration == None or int(duration) == 0:
+            end = self.raw.duration
+        else:
+            end = util.ms_to_timestring(start_ms + (float(duration) * 1000))
         return self.raw.subclip(t_start=start, t_end=end)
 
     def save_sequence(self, output: pathlib.Path or None):
