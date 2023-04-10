@@ -10,6 +10,7 @@ argparse = "*"
 pathlib = "*"
 pygame = "*"
 datetime = "*"
+av = "*"
 
 [dev-packages]
 

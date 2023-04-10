@@ -19,6 +19,7 @@ def main():
     if args.output != None:
         args.output = pathlib.Path(args.output)
     base.save(args.output)
+    #base.display() # Uncomment this line and comment the base.save() line out for testing that will not write any files or make any permanent changes.
     return
 
 if __name__ == '__main__':

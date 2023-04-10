@@ -2,7 +2,7 @@
 import config
 import pathlib
 import cv2
-#import threading
+import av
 import util
 from moviepy.editor import *
 from frame import Frame
@@ -13,6 +13,9 @@ class Video:
         self.target_res = (self.config.target_x, self.config.target_y)
         self.file = video_source
         self.current_frame = 0
+        self.container = av.open(str(self.file.absolute()))
+        self._edit(start, duration)
+        self.container.close()
         self.raw = VideoFileClip(str(self.file.absolute()))
         self.clip = self._split(start, duration)
         self.fps = self.raw.fps
@@ -20,13 +23,52 @@ class Video:
 
     def _split(self, start: str, duration: float):
         # Perform several transformations and operations on time strings to get accurate start and end timestamps
-
         start_ms = util.timestring_to_ms(start)
         if duration == None or int(duration) == 0:
-            end = self.raw.duration
+            end_ms = self.raw.duration
+            end = util.ms_to_timestring(self.raw.duration * 1000)
         else:
-            end = util.ms_to_timestring(start_ms + (float(duration) * 1000))
+            end_ms = start_ms + (float(duration) * 1000)
+            end = util.ms_to_timestring(end_ms)
         return self.raw.subclip(t_start=start, t_end=end)
+
+    def _calc_times(self, start: str, duration: float):
+        # Perform several transformations and operations on time strings to get accurate start and end timestamps
+        start_ms = util.timestring_to_ms(start)
+        if duration == None or int(duration) == 0:
+            end_ms = self.container.duration / 1000
+        else:
+            end_ms = start_ms + (float(duration) * 1000)
+        return start_ms, end_ms
+
+    def _edit(self, start: str, duration: float):
+        streams = {'video': {}, 'audio': {}}
+        output = av.open(f'{self.file.name.split(".")[0]}-edited_short.mp4', mode='w')
+        start_ms, end_ms = self._calc_times(start, duration)
+        # Because we have the millisecond duration already, we need to multiply it by the base_time denominator so it's maintained (Something to do with av.time_base being used here I assume)
+        self.container.seek(start_ms * 1000)
+        for packet in self.container.demux():
+            if packet.dts == None:
+                continue
+            print(packet.dts)
+            if packet.dts <= end_ms:
+                new_packets = []
+                for frame in packet.decode():
+                    if (isinstance(frame.format, av.VideoFormat)):
+                        f = Frame(frame.to_rgb().to_ndarray(), self.config.camera_pos, (self.config.target_x, self.config.target_y))
+                        if (frame.index not in streams['video'].keys()):
+                            streams['video'][frame.index] = output.add_stream(av.codec.Codec('mpeg4', 'w'))
+                        # Perform image operations on the frame data
+                        f.display()
+                        #new_packets.append(streams['video'][frame.index].encode(av.video.frame.VideoFrame.from_ndarray(f.composite())))
+                    elif (isinstance(frame.format, av.AudioFormat)):
+                        # Handle the audio track
+                        pass
+                    else:
+                        # Add the track to an output container without modification
+                        pass
+            else:
+                break
 
     def save_sequence(self, output: pathlib.Path or None):
         hFile = cv2.VideoCapture(str(self.file.absolute()))
@@ -75,3 +117,9 @@ class Video:
         frame = gf(t)
         f = Frame(frame, self.config.camera_pos, self.target_res)
         return f.composite()
+
+    def _parse_audio(self):
+        for packet in self.container.demux():
+            for frame in packet.decode():
+                print(frame.format, frame.dts, frame.index)
+                pass

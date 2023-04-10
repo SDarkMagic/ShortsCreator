@@ -18,7 +18,7 @@ the coordinates will be in the first quadrant of a cartesian coordinate system r
 
 ## Usage
 
-To run the program, use the command `pipenv run python src/__main__.py <start timestamp> <clip duration>` in this project's directory. Start timestamp **must** be formatted
+To run the program, use the command `pipenv run python src/__main__.py <source video file path> <start timestamp> <clip duration>` in this project's directory. Start timestamp **must** be formatted
 in the form of "HH:MM:SS.mmmm" A value of 0 is assumed for any non-specified values reading from left to right. The desired duration must be a value formatted as "SS.mmmm"
 representing the length of the clip, in seconds and milliseconds. This value will be added to the start timestamp and used to calculate the end timestamp of the clip.
 
